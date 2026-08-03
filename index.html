@@ -81,6 +81,27 @@
             width: 100%;
         }
 
+        /* TARJETAS CON EFECTO HOVER EXPLICATIVO */
+        .feature-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .feature-card .feature-desc {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.4s ease-in-out;
+        }
+        .feature-card:hover {
+            border-color: #D4AF37;
+            transform: translateY(-2px);
+            background-color: #1A1A22;
+        }
+        .feature-card:hover .feature-desc {
+            max-height: 80px;
+            opacity: 1;
+            margin-top: 6px;
+        }
+
         /* MODO PDF */
         body.pdf-mode {
             background-color: #0E0E11 !important;
@@ -127,27 +148,6 @@
     </style>
 </head>
 <body class="py-4 px-2 sm:py-6 sm:px-4">
-
-    <!-- PANEL LOCAL DE CARGA CSV -->
-    <div id="local-file-selector" class="no-print max-w-4xl mx-auto mb-4 bg-dark-card border border-gold/40 rounded-xl p-3 text-center shadow-lg">
-        <p class="text-xs text-gold font-medium mb-2">
-            <i class="fa-solid fa-folder-open mr-1"></i> Cargar Archivos CSV Locales:
-        </p>
-        <div class="flex flex-wrap justify-center gap-4 text-xs">
-            <label class="cursor-pointer text-gray-300">
-                <span class="font-bold text-white">edit.csv:</span>
-                <input type="file" id="csv-menu-input" accept=".csv" class="ml-1 text-xs text-gray-300 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-gold file:text-black">
-            </label>
-            <label class="cursor-pointer text-gray-300">
-                <span class="font-bold text-white">imagenes.csv:</span>
-                <input type="file" id="csv-imagenes-input" accept=".csv" class="ml-1 text-xs text-gray-300 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-gold file:text-black">
-            </label>
-            <label class="cursor-pointer text-gray-300">
-                <span class="font-bold text-white">contacto.csv:</span>
-                <input type="file" id="csv-contacto-input" accept=".csv" class="ml-1 text-xs text-gray-300 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-gold file:text-black">
-            </label>
-        </div>
-    </div>
 
     <!-- BARRA SUPERIOR FIJA DE NAVEGACIÓN -->
     <header class="no-print max-w-4xl mx-auto mb-6 sm:mb-8 bg-dark-card/95 backdrop-blur-md border border-dark-border rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 sticky top-2 sm:top-4 z-50 shadow-2xl">
@@ -240,22 +240,27 @@
                     </p>
                 </div>
 
+                <!-- TARJETAS CON DESPLEGABLE HOVER CORREGIDO -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-dark-border">
-                    <div class="p-2 text-center">
+                    <div class="feature-card p-2.5 text-center bg-dark-bg/60 border border-dark-border rounded-xl cursor-pointer">
                         <i class="fa-solid fa-house-chimney gold-text text-lg mb-1"></i>
-                        <p class="text-[10px] text-gray-400">Villas & Casas</p>
+                        <p class="text-[11px] font-semibold text-white">Villas & Casas</p>
+                        <p class="feature-desc text-[9px] text-gray-400 leading-tight">Servicio adaptado a tu cocina privada.</p>
                     </div>
-                    <div class="p-2 text-center">
+                    <div class="feature-card p-2.5 text-center bg-dark-bg/60 border border-dark-border rounded-xl cursor-pointer">
                         <i class="fa-solid fa-anchor gold-text text-lg mb-1"></i>
-                        <p class="text-[10px] text-gray-400">Yates & Barcos</p>
+                        <p class="text-[11px] font-semibold text-white">Yates & Barcos</p>
+                        <p class="feature-desc text-[9px] text-gray-400 leading-tight">Gastronomía exclusiva a bordo.</p>
                     </div>
-                    <div class="p-2 text-center">
+                    <div class="feature-card p-2.5 text-center bg-dark-bg/60 border border-dark-border rounded-xl cursor-pointer">
                         <i class="fa-solid fa-leaf gold-text text-lg mb-1"></i>
-                        <p class="text-[10px] text-gray-400">Producto KM0</p>
+                        <p class="text-[11px] font-semibold text-white">Producto KM0</p>
+                        <p class="feature-desc text-[9px] text-gray-400 leading-tight">Ingredientes frescos y de cercanía.</p>
                     </div>
-                    <div class="p-2 text-center">
+                    <div class="feature-card p-2.5 text-center bg-dark-bg/60 border border-dark-border rounded-xl cursor-pointer">
                         <i class="fa-solid fa-concierge-bell gold-text text-lg mb-1"></i>
-                        <p class="text-[10px] text-gray-400">Servicio Integral</p>
+                        <p class="text-[11px] font-semibold text-white">Servicio Integral</p>
+                        <p class="feature-desc text-[9px] text-gray-400 leading-tight">Gestión completa de inicio a fin.</p>
                     </div>
                 </div>
             </div>
@@ -299,7 +304,7 @@
         const fallbackImage = "https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=800&auto=format&fit=crop";
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Cargar Menús
+            // Cargar Menús desde servidor/GitHub
             Papa.parse("edit.csv", {
                 download: true,
                 header: true,
@@ -333,49 +338,6 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: res => { if (res.data && res.data.length > 0) renderContacto(res.data[0]); }
-            });
-
-            // Listeners de Inputs Locales
-            document.getElementById("csv-menu-input").addEventListener("change", function(e) {
-                if (e.target.files[0]) {
-                    Papa.parse(e.target.files[0], {
-                        header: true,
-                        skipEmptyLines: true,
-                        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase(),
-                        complete: res => { 
-                            if (res.data && res.data.length > 0) {
-                                rawCSVData = res.data;
-                                renderWebMenus(rawCSVData);
-                            } 
-                        }
-                    });
-                }
-            });
-
-            document.getElementById("csv-imagenes-input").addEventListener("change", function(e) {
-                if (e.target.files[0]) {
-                    Papa.parse(e.target.files[0], {
-                        header: true,
-                        skipEmptyLines: true,
-                        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase(),
-                        complete: res => {
-                            if (res.data && res.data.length > 0) {
-                                rawGaleriaData = res.data;
-                                renderWebGaleria(rawGaleriaData);
-                            }
-                        }
-                    });
-                }
-            });
-
-            document.getElementById("csv-contacto-input").addEventListener("change", function(e) {
-                if (e.target.files[0]) {
-                    Papa.parse(e.target.files[0], {
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: res => { if (res.data && res.data.length > 0) renderContacto(res.data[0]); }
-                    });
-                }
             });
         });
 
@@ -448,7 +410,6 @@
             `;
         }
 
-        // MODO WEB MENÚS
         function renderWebMenus(data) {
             const container = document.getElementById("dynamic-menus-container");
             container.innerHTML = "";
@@ -482,7 +443,6 @@
             });
         }
 
-        // MODO WEB GALERÍA
         function renderWebGaleria(data) {
             const container = document.getElementById("sec-nuestro-trabajo");
             container.innerHTML = "";
@@ -512,7 +472,6 @@
             container.appendChild(pageSection);
         }
 
-        // MODO PDF MENÚS
         function renderPDFMenus(data) {
             const container = document.getElementById("dynamic-menus-container");
             container.innerHTML = "";
@@ -560,7 +519,6 @@
             });
         }
 
-        // MODO PDF GALERÍA (4 FOTOS POR HOJA)
         function renderPDFGaleria(data) {
             const container = document.getElementById("sec-nuestro-trabajo");
             container.innerHTML = "";
@@ -604,7 +562,6 @@
             }
         }
 
-        // RENDER CONTACTO MEJORADO CON ENLACES FUNCIONALES
         function renderContacto(data) {
             const container = document.getElementById("contacto-content");
             if (!container || !data) return;
@@ -626,7 +583,6 @@
 
             html += `<div class="space-y-4 text-xs sm:text-sm text-gray-300">`;
             
-            // Teléfono con WhatsApp
             if (telefono) {
                 const cleanPhone = telefono.replace(/\D/g, '');
                 html += `
@@ -638,7 +594,6 @@
                     </div>`;
             }
 
-            // Correo con mailto:
             if (correo) {
                 html += `
                     <div class="flex items-center justify-center gap-3">
@@ -649,7 +604,6 @@
                     </div>`;
             }
 
-            // Instagram
             if (instagram) {
                 const instaUrl = instagram.startsWith('http') ? instagram : `https://instagram.com/${instagram.replace('@', '')}`;
                 html += `
@@ -661,7 +615,6 @@
                     </div>`;
             }
 
-            // TikTok
             if (tiktok) {
                 const tiktokUrl = tiktok.startsWith('http') ? tiktok : `https://tiktok.com/@${tiktok.replace('@', '')}`;
                 html += `
@@ -673,7 +626,6 @@
                     </div>`;
             }
 
-            // Facebook
             if (facebook) {
                 const fbUrl = facebook.startsWith('http') ? facebook : `https://facebook.com/${facebook}`;
                 html += `
@@ -690,40 +642,52 @@
             container.innerHTML = html;
         }
 
-        // DESCARGA PDF 
+        // DESCARGA PDF COMPATIBLE CON GITHUB PAGES
         function downloadPDF() {
             const btn = document.getElementById('btn-download-pdf');
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generando...`;
             btn.disabled = true;
 
+            // Renderizado en estructura A4 rígida
             renderPDFMenus(rawCSVData);
             renderPDFGaleria(rawGaleriaData);
             document.body.classList.add('pdf-mode');
-            
+
+            window.scrollTo(0, 0);
+
             const element = document.getElementById('dossier-content');
 
             const opt = {
                 margin:       0,
                 filename:     'A_Cruz_Dossier_Gastronomico.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    allowTaint: true,
+                    scrollY: 0,
+                    logging: false
+                },
                 jsPDF:        { unit: 'px', format: [794, 1122], orientation: 'portrait' },
-                pagebreak:    { mode: 'css' }
+                pagebreak:    { mode: ['css', 'legacy'] }
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
-                document.body.classList.remove('pdf-mode');
-                renderWebMenus(rawCSVData);
-                renderWebGaleria(rawGaleriaData);
-                btn.innerHTML = `<i class="fa-solid fa-file-pdf"></i> Descargar PDF`;
-                btn.disabled = false;
-            }).catch(() => {
-                document.body.classList.remove('pdf-mode');
-                renderWebMenus(rawCSVData);
-                renderWebGaleria(rawGaleriaData);
-                btn.innerHTML = `<i class="fa-solid fa-file-pdf"></i> Descargar PDF`;
-                btn.disabled = false;
-            });
+            setTimeout(() => {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.body.classList.remove('pdf-mode');
+                    renderWebMenus(rawCSVData);
+                    renderWebGaleria(rawGaleriaData);
+                    btn.innerHTML = `<i class="fa-solid fa-file-pdf"></i> Descargar PDF`;
+                    btn.disabled = false;
+                }).catch(err => {
+                    console.error("Error al generar PDF:", err);
+                    document.body.classList.remove('pdf-mode');
+                    renderWebMenus(rawCSVData);
+                    renderWebGaleria(rawGaleriaData);
+                    btn.innerHTML = `<i class="fa-solid fa-file-pdf"></i> Descargar PDF`;
+                    btn.disabled = false;
+                });
+            }, 300);
         }
     </script>
 </body>
