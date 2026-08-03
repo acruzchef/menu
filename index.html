@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A. Cruz - Private Chef Experience | Dossier Gastronómico</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PapaParse CDN para lectura de CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- html2pdf.js CDN para generación de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#D4AF37',
+                        'gold-light': '#F3E5AB',
+                        'dark-bg': '#0E0E11',
+                        'dark-card': '#16161A',
+                        'dark-border': '#2A2A30'
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Montserrat"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: #050505;
+            color: #E2E8F0;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .a4-page {
+            width: 100%;
+            min-height: auto;
+            background-color: #0E0E11;
+            margin: 0 auto 1.5rem auto;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            border: 1px solid #2A2A30;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+        }
+
+        @media (min-width: 820px) {
+            .a4-page {
+                width: 794px;
+                min-height: 1122px;
+                padding: 40px 48px;
+                border-radius: 0px;
+                margin-bottom: 2rem;
+            }
+        }
+
+        .gold-border { border: 1px solid #D4AF37; }
+        .gold-text { color: #D4AF37; }
+        .gold-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+            width: 100%;
+        }
+
+        /* MODO PDF */
+        body.pdf-mode {
+            background-color: #0E0E11 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        body.pdf-mode #dossier-content {
+            width: 794px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        body.pdf-mode .a4-page {
+            width: 794px !important;
+            height: 1122px !important;
+            max-height: 1122px !important;
+            margin: 0 !important;
+            padding: 40px 48px !important;
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            overflow: hidden !important;
+        }
+
+        body.pdf-mode .a4-page:last-child {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+        }
+
+        @media print {
+            body { background: transparent; }
+            .no-print { display: none !important; }
+            .a4-page {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="py-4 px-2 sm:py-6 sm:px-4">
+
+    <!-- PANEL LOCAL DE CARGA CSV -->
+    <div id="local-file-selector" class="no-print max-w-4xl mx-auto mb-4 bg-dark-card border border-gold/40 rounded-xl p-3 text-center shadow-lg">
+        <p class="text-xs text-gold font-medium mb-2">
+            <i class="fa-solid fa-folder-open mr-1"></i> Cargar Archivos CSV Locales:
+        </p>
+        <div class="flex flex-wrap justify-center gap-4 text-xs">
+            <label class="cursor-pointer text-gray-300">
+                <span class="font-bold text-white">edit.csv:</span>
+                <input type="file" id="csv-menu-input" accept=".csv" class="ml-1 text-xs text-gray-300 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-gold file:text-black">
+            </label>
+            <label class="cursor-pointer text-gray-300">
+                <span class="font-bold text-white">imagenes.csv:</span>
+                <input type="file" id="csv-imagenes-input" accept=".csv" class="ml-1 text-xs text-gray-300 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-gold file:text-black">
+            </label>
+            <label class="cursor-pointer text-gray-300">
+                <span class="font-bold text-white">contacto.csv:</span>
+                <input type="file" id="csv-contacto-input" accept=".csv" class="ml-1 text-xs text-gray-300 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-bold file:bg-gold file:text-black">
+            </label>
+        </div>
+    </div>
+
+    <!-- BARRA SUPERIOR FIJA DE NAVEGACIÓN -->
+    <header class="no-print max-w-4xl mx-auto mb-6 sm:mb-8 bg-dark-card/95 backdrop-blur-md border border-dark-border rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 sticky top-2 sm:top-4 z-50 shadow-2xl">
+        <div class="flex items-center gap-3">
+            <img src="favicon/logo.png" 
+                 onerror="this.onerror=null;this.src='https://via.placeholder.com/120x40/000000/D4AF37?text=A.+CRUZ';" 
+                 alt="Logo A. Cruz" 
+                 class="h-8 sm:h-10 object-contain">
+            <span class="text-[10px] sm:text-xs gold-text uppercase font-semibold tracking-widest pl-2 sm:pl-3 border-l border-gray-700">CHEF Experience</span>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-2">
+            <button onclick="document.getElementById('sec-presentacion').scrollIntoView({behavior: 'smooth'})" 
+                    class="px-2.5 py-1.5 text-[11px] sm:text-xs bg-dark-bg hover:bg-dark-border text-gray-300 rounded-lg border border-dark-border transition">
+                <i class="fa-solid fa-star gold-text mr-1"></i> Presentación
+            </button>
+            <button onclick="document.getElementById('dynamic-menus-container').scrollIntoView({behavior: 'smooth'})" 
+                    class="px-2.5 py-1.5 text-[11px] sm:text-xs bg-dark-bg hover:bg-dark-border text-gray-300 rounded-lg border border-dark-border transition">
+                <i class="fa-solid fa-utensils gold-text mr-1"></i> Menús
+            </button>
+            <button onclick="document.getElementById('sec-nuestro-trabajo').scrollIntoView({behavior: 'smooth'})" 
+                    class="px-2.5 py-1.5 text-[11px] sm:text-xs bg-dark-bg hover:bg-dark-border text-gray-300 rounded-lg border border-dark-border transition">
+                <i class="fa-solid fa-camera gold-text mr-1"></i> Nuestro Trabajo
+            </button>
+            <button onclick="document.getElementById('sec-contacto').scrollIntoView({behavior: 'smooth'})" 
+                    class="px-2.5 py-1.5 text-[11px] sm:text-xs bg-dark-bg hover:bg-dark-border text-gray-300 rounded-lg border border-dark-border transition">
+                <i class="fa-solid fa-address-book gold-text mr-1"></i> Contacto
+            </button>
+            <button id="btn-download-pdf" onclick="downloadPDF()" 
+                    class="px-3 py-1.5 text-[11px] sm:text-xs bg-gold hover:bg-yellow-500 text-black font-bold rounded-lg transition shadow-lg flex items-center gap-1.5">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span>Descargar PDF</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR DOSSIER -->
+    <main id="dossier-content" class="w-full sm:max-w-[794px] mx-auto">
+
+        <!-- HOJA 1: PORTADA -->
+        <section class="a4-page text-center">
+            <div class="pt-2 sm:pt-6">
+                <img src="favicon/logo.png" 
+                     onerror="this.onerror=null;this.src='https://via.placeholder.com/300x100/000000/D4AF37?text=A.+CRUZ';" 
+                     alt="A. Cruz Logo" 
+                     class="w-48 sm:w-64 mx-auto mb-3 object-contain">
+                <div class="gold-divider max-w-xs mx-auto my-3"></div>
+                <p class="gold-text text-[10px] sm:text-xs uppercase tracking-[0.3em] font-semibold">Chef Experience</p>
+            </div>
+
+            <div class="my-6 sm:my-auto py-2">
+                <div class="w-56 h-72 sm:w-72 sm:h-96 mx-auto rounded-2xl overflow-hidden gold-border p-1 bg-dark-card shadow-2xl">
+                    <img src="favicon/portada.png" 
+                         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=1000&auto=format&fit=crop';"
+                         alt="Chef A. Cruz" 
+                         class="w-full h-full object-cover rounded-xl">
+                </div>
+            </div>
+
+            <div class="pb-2 sm:pb-4">
+                <div class="gold-divider max-w-md mx-auto mb-3"></div>
+                <p class="text-gray-400 text-[10px] sm:text-xs tracking-widest font-light uppercase">Experiencias Gastronómicas Exclusivas y a Medida</p>
+            </div>
+        </section>
+
+        <!-- HOJA 2: PRESENTACIÓN -->
+        <section id="sec-presentacion" class="a4-page">
+            <div class="text-center pt-2">
+                <span class="gold-text text-xs uppercase tracking-[0.2em] font-bold">A.Cruz Private Chef</span>
+                <h2 class="text-xl sm:text-2xl font-serif text-white font-semibold mt-1">Nuestra Filosofía</h2>
+                <div class="gold-divider max-w-xs mx-auto my-3"></div>
+            </div>
+
+            <div class="my-6 sm:my-auto space-y-4 sm:space-y-6 text-center max-w-lg mx-auto px-2 sm:px-4">
+                <i class="fa-solid fa-quote-left gold-text text-2xl sm:text-3xl opacity-80"></i>
+                
+                <h3 class="text-xl sm:text-2xl font-serif text-white italic leading-relaxed">
+                    "Más que una comida,<br>una <span class="gold-text not-italic font-bold">experiencia para recordar.</span>"
+                </h3>
+
+                <div class="space-y-3 sm:space-y-4 text-gray-300 text-xs leading-relaxed font-light pt-2">
+                    <p>
+                        En <strong class="text-white font-normal">A.Cruz Private Chef Experience</strong> creemos que disfrutar de una buena mesa trasciende lo gastronómico: se trata de crear recuerdos inolvidables en compañía de quienes más quieres.
+                    </p>
+                    <p>
+                        Llevamos la elegancia de la <strong class="gold-text font-normal">cocina mediterránea de autor</strong> directamente a tu espacio, combinando materia prima local de la máxima calidad con una ejecución técnica impecable y un servicio cuidado al detalle.
+                    </p>
+                    <p class="text-gray-400">
+                        Diseñado para villas, hogares particulares, embarcaciones y eventos privados.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-dark-border">
+                    <div class="p-2 text-center">
+                        <i class="fa-solid fa-house-chimney gold-text text-lg mb-1"></i>
+                        <p class="text-[10px] text-gray-400">Villas & Casas</p>
+                    </div>
+                    <div class="p-2 text-center">
+                        <i class="fa-solid fa-anchor gold-text text-lg mb-1"></i>
+                        <p class="text-[10px] text-gray-400">Yates & Barcos</p>
+                    </div>
+                    <div class="p-2 text-center">
+                        <i class="fa-solid fa-leaf gold-text text-lg mb-1"></i>
+                        <p class="text-[10px] text-gray-400">Producto KM0</p>
+                    </div>
+                    <div class="p-2 text-center">
+                        <i class="fa-solid fa-concierge-bell gold-text text-lg mb-1"></i>
+                        <p class="text-[10px] text-gray-400">Servicio Integral</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pb-2 text-center">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest">Dossier Gastronómico</span>
+            </div>
+        </section>
+
+        <!-- CONTENEDOR DINÁMICO DE MENÚS -->
+        <div id="dynamic-menus-container"></div>
+
+        <!-- SECCIÓN: NUESTRO TRABAJO (GALERÍA) -->
+        <div id="sec-nuestro-trabajo"></div>
+
+        <!-- HOJA FINAL: CONTACTO -->
+        <section id="sec-contacto" class="a4-page">
+            <div class="text-center pt-2 sm:pt-6">
+                <span class="gold-text text-xs uppercase tracking-[0.2em] font-bold">Reservas & Información</span>
+                <h2 class="text-2xl sm:text-3xl font-serif text-white font-bold mt-1">Contacto</h2>
+                <div class="gold-divider max-w-xs mx-auto my-3"></div>
+            </div>
+
+            <div class="my-6 sm:my-auto max-w-md mx-auto w-full">
+                <div id="contacto-content" class="bg-dark-card border border-dark-border rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-2xl">
+                    <p class="text-xs text-gray-400 italic">Cargando datos de contacto...</p>
+                </div>
+            </div>
+
+            <div class="text-center pb-2 sm:pb-4">
+                <img src="favicon/logo.png" onerror="this.onerror=null;this.src='https://via.placeholder.com/150x50/000000/D4AF37?text=A.+CRUZ';" alt="Logo" class="h-8 mx-auto opacity-50 mb-2">
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest">© A.Cruz Private Chef Experience</p>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        let rawCSVData = [];
+        let rawGaleriaData = [];
+        const fallbackImage = "https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=800&auto=format&fit=crop";
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Cargar Menús
+            Papa.parse("edit.csv", {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase(),
+                complete: res => { 
+                    if (res.data && res.data.length > 0) {
+                        rawCSVData = res.data;
+                        renderWebMenus(rawCSVData); 
+                    } 
+                }
+            });
+
+            // Cargar Galería
+            Papa.parse("imagenes.csv", {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase(),
+                complete: res => {
+                    if (res.data && res.data.length > 0) {
+                        rawGaleriaData = res.data;
+                        renderWebGaleria(rawGaleriaData);
+                    }
+                }
+            });
+
+            // Cargar Contacto
+            Papa.parse("contacto.csv", {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: res => { if (res.data && res.data.length > 0) renderContacto(res.data[0]); }
+            });
+
+            // Listeners de Inputs Locales
+            document.getElementById("csv-menu-input").addEventListener("change", function(e) {
+                if (e.target.files[0]) {
+                    Papa.parse(e.target.files[0], {
+                        header: true,
+                        skipEmptyLines: true,
+                        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase(),
+                        complete: res => { 
+                            if (res.data && res.data.length > 0) {
+                                rawCSVData = res.data;
+                                renderWebMenus(rawCSVData);
+                            } 
+                        }
+                    });
+                }
+            });
+
+            document.getElementById("csv-imagenes-input").addEventListener("change", function(e) {
+                if (e.target.files[0]) {
+                    Papa.parse(e.target.files[0], {
+                        header: true,
+                        skipEmptyLines: true,
+                        transformHeader: h => h.replace(/^\uFEFF/, '').trim().toLowerCase(),
+                        complete: res => {
+                            if (res.data && res.data.length > 0) {
+                                rawGaleriaData = res.data;
+                                renderWebGaleria(rawGaleriaData);
+                            }
+                        }
+                    });
+                }
+            });
+
+            document.getElementById("csv-contacto-input").addEventListener("change", function(e) {
+                if (e.target.files[0]) {
+                    Papa.parse(e.target.files[0], {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: res => { if (res.data && res.data.length > 0) renderContacto(res.data[0]); }
+                    });
+                }
+            });
+        });
+
+        function getGroupedData(data) {
+            const grouped = {};
+            data.forEach(row => {
+                const tipo = row.tipo ? row.tipo.trim() : "";
+                const menu = row.menu ? row.menu.trim() : "";
+                if (!tipo && !menu) return;
+
+                const key = `${tipo}___${menu}`;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        tipo: tipo,
+                        menu: menu,
+                        frase: row.frase ? row.frase.trim() : "",
+                        items: []
+                    };
+                }
+                grouped[key].items.push(row);
+            });
+            return grouped;
+        }
+
+        function createPlatoCard(item) {
+            const imageName = item.imagen ? item.imagen.trim() : '';
+            const imgSrc = imageName ? `favicon/${imageName}` : fallbackImage;
+            const platoText = item.plato ? item.plato.trim() : '';
+            const descText = item.descripcion ? item.descripcion.trim() : '';
+            const tiempoText = item.tiempos ? item.tiempos.trim() : '';
+
+            return `
+                <div class="bg-dark-card border border-dark-border rounded-xl p-3 flex flex-col justify-between h-[340px] sm:h-[380px] overflow-hidden">
+                    <div class="h-36 sm:h-44 rounded-lg overflow-hidden border border-dark-border bg-black relative flex-shrink-0">
+                        <img src="${imgSrc}" onerror="this.src='${fallbackImage}';" alt="${platoText}" class="w-full h-full object-cover">
+                        ${tiempoText ? `<span class="absolute top-2 left-2 bg-black/90 gold-text text-[10px] px-2 py-0.5 rounded font-bold border border-gold/30">${tiempoText}</span>` : ''}
+                    </div>
+                    <div class="pt-2 flex-grow flex flex-col justify-between text-center">
+                        <div>
+                            <h3 class="font-serif text-sm sm:text-base font-bold text-white leading-tight mb-1">${platoText}</h3>
+                            <p class="text-gray-400 text-xs leading-snug font-light">${descText}</p>
+                        </div>
+                        <div class="pt-2 border-t border-dark-border/60 mt-2">
+                            <i class="fa-solid fa-utensils gold-text text-[10px]"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createGaleriaCard(item) {
+            const getVal = key => {
+                const foundKey = Object.keys(item).find(k => k.trim().toLowerCase() === key.toLowerCase());
+                return foundKey && item[foundKey] ? item[foundKey].trim() : '';
+            };
+
+            const fotoName = getVal('foto');
+            const descText = getVal('descripción') || getVal('descripcion');
+            const imgSrc = fotoName ? `favicon/${fotoName}` : fallbackImage;
+
+            return `
+                <div class="bg-dark-card border border-dark-border rounded-xl p-3 flex flex-col justify-between h-[340px] sm:h-[380px] overflow-hidden">
+                    <div class="h-56 sm:h-64 rounded-lg overflow-hidden border border-dark-border bg-black relative flex-shrink-0">
+                        <img src="${imgSrc}" onerror="this.src='${fallbackImage}';" alt="Galería" class="w-full h-full object-cover">
+                    </div>
+                    <div class="pt-2 flex-grow flex flex-col justify-center text-center">
+                        <p class="text-gray-300 text-xs leading-snug font-light italic">${descText}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // MODO WEB MENÚS
+        function renderWebMenus(data) {
+            const container = document.getElementById("dynamic-menus-container");
+            container.innerHTML = "";
+            const grouped = getGroupedData(data);
+
+            Object.keys(grouped).forEach(key => {
+                const group = grouped[key];
+                const pageSection = document.createElement("section");
+                pageSection.className = "a4-page !h-auto min-h-0 sm:min-h-[1122px] mb-6 sm:mb-8";
+
+                let itemsHTML = group.items.map(item => createPlatoCard(item)).join("");
+
+                pageSection.innerHTML = `
+                    <div class="text-center pt-2">
+                        ${group.tipo ? `<span class="gold-text text-xs uppercase tracking-[0.2em] font-bold">${group.tipo}</span>` : ''}
+                        ${group.menu ? `<h2 class="text-xl sm:text-2xl font-serif text-white font-bold mt-1">${group.menu}</h2>` : ''}
+                        <div class="gold-divider max-w-xs mx-auto my-2"></div>
+                        ${group.frase ? `<p class="font-serif italic text-gray-300 text-xs mb-4">"${group.frase}"</p>` : ''}
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-auto py-4">
+                        ${itemsHTML}
+                    </div>
+
+                    <div class="text-center pb-2 border-t border-dark-border pt-3 mt-auto">
+                        <span class="text-[10px] text-gray-500 uppercase tracking-widest">A.Cruz Private Chef Experience</span>
+                    </div>
+                `;
+
+                container.appendChild(pageSection);
+            });
+        }
+
+        // MODO WEB GALERÍA
+        function renderWebGaleria(data) {
+            const container = document.getElementById("sec-nuestro-trabajo");
+            container.innerHTML = "";
+            if (!data || data.length === 0) return;
+
+            const pageSection = document.createElement("section");
+            pageSection.className = "a4-page !h-auto min-h-0 sm:min-h-[1122px] mb-6 sm:mb-8";
+
+            let itemsHTML = data.map(item => createGaleriaCard(item)).join("");
+
+            pageSection.innerHTML = `
+                <div class="text-center pt-2">
+                    <span class="gold-text text-xs uppercase tracking-[0.2em] font-bold">Galería Fotográfica</span>
+                    <h2 class="text-xl sm:text-2xl font-serif text-white font-bold mt-1">Nuestro Trabajo</h2>
+                    <div class="gold-divider max-w-xs mx-auto my-2"></div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-auto py-4">
+                    ${itemsHTML}
+                </div>
+
+                <div class="text-center pb-2 border-t border-dark-border pt-3 mt-auto">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest">A.Cruz Private Chef Experience</span>
+                </div>
+            `;
+
+            container.appendChild(pageSection);
+        }
+
+        // MODO PDF MENÚS
+        function renderPDFMenus(data) {
+            const container = document.getElementById("dynamic-menus-container");
+            container.innerHTML = "";
+            const grouped = getGroupedData(data);
+
+            Object.keys(grouped).forEach(key => {
+                const group = grouped[key];
+                const totalItems = group.items.length;
+                const chunkSize = 4;
+                
+                for (let i = 0; i < totalItems; i += chunkSize) {
+                    const chunkItems = group.items.slice(i, i + chunkSize);
+                    const pageIndex = Math.floor(i / chunkSize) + 1;
+                    const totalPagesForMenu = Math.ceil(totalItems / chunkSize);
+
+                    const pageSection = document.createElement("section");
+                    pageSection.className = "a4-page";
+
+                    let gridClass = "grid grid-cols-2 gap-4 my-auto h-[820px] align-content-center";
+                    if (chunkItems.length === 1) {
+                        gridClass = "grid grid-cols-1 gap-4 my-auto max-w-sm mx-auto w-full";
+                    }
+
+                    let itemsHTML = chunkItems.map(item => createPlatoCard(item)).join("");
+
+                    pageSection.innerHTML = `
+                        <div class="text-center pt-2">
+                            ${group.tipo ? `<span class="gold-text text-xs uppercase tracking-[0.2em] font-bold">${group.tipo} ${totalPagesForMenu > 1 ? `(${pageIndex}/${totalPagesForMenu})` : ''}</span>` : ''}
+                            ${group.menu ? `<h2 class="text-2xl font-serif text-white font-bold mt-1">${group.menu}</h2>` : ''}
+                            <div class="gold-divider max-w-xs mx-auto my-2"></div>
+                            ${group.frase ? `<p class="font-serif italic text-gray-300 text-xs">"${group.frase}"</p>` : ''}
+                        </div>
+
+                        <div class="${gridClass}">
+                            ${itemsHTML}
+                        </div>
+
+                        <div class="text-center pb-2 border-t border-dark-border pt-2">
+                            <span class="text-[10px] text-gray-500 uppercase tracking-widest">A.Cruz Private Chef Experience</span>
+                        </div>
+                    `;
+
+                    container.appendChild(pageSection);
+                }
+            });
+        }
+
+        // MODO PDF GALERÍA (4 FOTOS POR HOJA)
+        function renderPDFGaleria(data) {
+            const container = document.getElementById("sec-nuestro-trabajo");
+            container.innerHTML = "";
+            if (!data || data.length === 0) return;
+
+            const totalItems = data.length;
+            const chunkSize = 4;
+
+            for (let i = 0; i < totalItems; i += chunkSize) {
+                const chunkItems = data.slice(i, i + chunkSize);
+                const pageIndex = Math.floor(i / chunkSize) + 1;
+                const totalPages = Math.ceil(totalItems / chunkSize);
+
+                const pageSection = document.createElement("section");
+                pageSection.className = "a4-page";
+
+                let gridClass = "grid grid-cols-2 gap-4 my-auto h-[820px] align-content-center";
+                if (chunkItems.length === 1) {
+                    gridClass = "grid grid-cols-1 gap-4 my-auto max-w-sm mx-auto w-full";
+                }
+
+                let itemsHTML = chunkItems.map(item => createGaleriaCard(item)).join("");
+
+                pageSection.innerHTML = `
+                    <div class="text-center pt-2">
+                        <span class="gold-text text-xs uppercase tracking-[0.2em] font-bold">Galería Fotográfica ${totalPages > 1 ? `(${pageIndex}/${totalPages})` : ''}</span>
+                        <h2 class="text-2xl font-serif text-white font-bold mt-1">Nuestro Trabajo</h2>
+                        <div class="gold-divider max-w-xs mx-auto my-2"></div>
+                    </div>
+
+                    <div class="${gridClass}">
+                        ${itemsHTML}
+                    </div>
+
+                    <div class="text-center pb-2 border-t border-dark-border pt-2">
+                        <span class="text-[10px] text-gray-500 uppercase tracking-widest">A.Cruz Private Chef Experience</span>
+                    </div>
+                `;
+
+                container.appendChild(pageSection);
+            }
+        }
+
+        // RENDER CONTACTO MEJORADO CON ENLACES FUNCIONALES
+        function renderContacto(data) {
+            const container = document.getElementById("contacto-content");
+            if (!container || !data) return;
+
+            const getVal = key => {
+                const foundKey = Object.keys(data).find(k => k.trim().toLowerCase() === key.toLowerCase());
+                return foundKey && data[foundKey] ? data[foundKey].trim() : '';
+            };
+
+            const nombre = getVal('Nombre');
+            const correo = getVal('Correo');
+            const telefono = getVal('Teléfono') || getVal('Telefono');
+            const instagram = getVal('Instagram');
+            const tiktok = getVal('TikTok') || getVal('Tiktok');
+            const facebook = getVal('Facebook');
+
+            let html = '';
+            if (nombre) html += `<h3 class="text-xl sm:text-2xl font-serif font-bold text-white mb-4">${nombre}</h3>`;
+
+            html += `<div class="space-y-4 text-xs sm:text-sm text-gray-300">`;
+            
+            // Teléfono con WhatsApp
+            if (telefono) {
+                const cleanPhone = telefono.replace(/\D/g, '');
+                html += `
+                    <div class="flex items-center justify-center gap-3">
+                        <i class="fa-brands fa-whatsapp gold-text text-lg"></i>
+                        <a href="https://wa.me/${cleanPhone}" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-white transition">
+                            ${telefono}
+                        </a>
+                    </div>`;
+            }
+
+            // Correo con mailto:
+            if (correo) {
+                html += `
+                    <div class="flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-envelope gold-text text-lg"></i>
+                        <a href="mailto:${correo}" class="text-gold hover:underline transition">
+                            ${correo}
+                        </a>
+                    </div>`;
+            }
+
+            // Instagram
+            if (instagram) {
+                const instaUrl = instagram.startsWith('http') ? instagram : `https://instagram.com/${instagram.replace('@', '')}`;
+                html += `
+                    <div class="flex items-center justify-center gap-3">
+                        <i class="fa-brands fa-instagram gold-text text-lg"></i>
+                        <a href="${instaUrl}" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-white transition">
+                            ${instagram}
+                        </a>
+                    </div>`;
+            }
+
+            // TikTok
+            if (tiktok) {
+                const tiktokUrl = tiktok.startsWith('http') ? tiktok : `https://tiktok.com/@${tiktok.replace('@', '')}`;
+                html += `
+                    <div class="flex items-center justify-center gap-3">
+                        <i class="fa-brands fa-tiktok gold-text text-lg"></i>
+                        <a href="${tiktokUrl}" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-white transition">
+                            ${tiktok}
+                        </a>
+                    </div>`;
+            }
+
+            // Facebook
+            if (facebook) {
+                const fbUrl = facebook.startsWith('http') ? facebook : `https://facebook.com/${facebook}`;
+                html += `
+                    <div class="flex items-center justify-center gap-3">
+                        <i class="fa-brands fa-facebook gold-text text-lg"></i>
+                        <a href="${fbUrl}" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-white transition">
+                            ${facebook}
+                        </a>
+                    </div>`;
+            }
+
+            html += `</div>`;
+
+            container.innerHTML = html;
+        }
+
+        // DESCARGA PDF 
+        function downloadPDF() {
+            const btn = document.getElementById('btn-download-pdf');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generando...`;
+            btn.disabled = true;
+
+            renderPDFMenus(rawCSVData);
+            renderPDFGaleria(rawGaleriaData);
+            document.body.classList.add('pdf-mode');
+            
+            const element = document.getElementById('dossier-content');
+
+            const opt = {
+                margin:       0,
+                filename:     'A_Cruz_Dossier_Gastronomico.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF:        { unit: 'px', format: [794, 1122], orientation: 'portrait' },
+                pagebreak:    { mode: 'css' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.classList.remove('pdf-mode');
+                renderWebMenus(rawCSVData);
+                renderWebGaleria(rawGaleriaData);
+                btn.innerHTML = `<i class="fa-solid fa-file-pdf"></i> Descargar PDF`;
+                btn.disabled = false;
+            }).catch(() => {
+                document.body.classList.remove('pdf-mode');
+                renderWebMenus(rawCSVData);
+                renderWebGaleria(rawGaleriaData);
+                btn.innerHTML = `<i class="fa-solid fa-file-pdf"></i> Descargar PDF`;
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
